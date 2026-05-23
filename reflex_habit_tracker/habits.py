@@ -47,6 +47,39 @@ class HabitState(rx.State):
         self.emoji = ""
         self.load_habits()
 
+    def delete_habit(self, habit_id: int):
+        with rx.session() as session:
+            habit = session.exec(
+                select(Habit).where(Habit.id == habit_id)
+            ).first()
+            if habit:
+                session.delete(habit)
+                session.commit()
+        self.load_habits()
+
+
+def habit_card(habit: HabitItem):
+    return rx.box(
+        rx.hstack(
+            rx.text(habit.emoji, font_size="1.5em"),
+            rx.text(habit.name, font_size="1.1em"),
+            rx.spacer(),
+            rx.button(
+                "Eliminar",
+                on_click=HabitState.delete_habit(habit.id),
+                color_scheme="red",
+                variant="ghost",
+                size="1",
+            ),
+            align="center",
+            width="100%",
+        ),
+        border="1px solid #e2e8f0",
+        border_radius="8px",
+        padding="1em",
+        width="300px",
+    )
+
 
 def habit_form():
     return rx.box(
@@ -86,6 +119,15 @@ def index():
             rx.text("Construye habitos, cambia tu vida", color="gray"),
             rx.divider(),
             habit_form(),
+            rx.divider(),
+            rx.heading("Mis habitos", font_size="1.5em"),
+            rx.vstack(
+                rx.foreach(
+                    HabitState.habits,
+                    habit_card,
+                ),
+                spacing="3",
+            ),
             align="center",
             spacing="6",
             padding="2em",
