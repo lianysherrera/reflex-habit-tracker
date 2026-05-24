@@ -1,7 +1,8 @@
 import reflex as rx
 from pydantic import BaseModel
 from sqlmodel import select
-from reflex_habit_tracker.models import Habit
+from datetime import date
+from reflex_habit_tracker.models import Habit, HabitLog
 
 
 # Modelo serializable para el State
@@ -56,6 +57,15 @@ class HabitState(rx.State):
                 session.delete(habit)
                 session.commit()
         self.load_habits()
+    
+    def complete_habit(self, habit_id: int):
+        with rx.session() as session:
+            session.add(HabitLog(
+                habit_id=habit_id,
+                log_date=date.today(),
+            ))
+            session.commit()
+        print(f"habito {habit_id} completado hoy")
 
 
 def habit_card(habit: HabitItem):
@@ -64,6 +74,13 @@ def habit_card(habit: HabitItem):
             rx.text(habit.emoji, font_size="1.5em"),
             rx.text(habit.name, font_size="1.1em"),
             rx.spacer(),
+            rx.button(
+                "Completado",
+                on_click=HabitState.complete_habit(habit.id),
+                color_scheme="green",
+                variant="outline",
+                size="1",
+            ),
             rx.button(
                 "Eliminar",
                 on_click=HabitState.delete_habit(habit.id),
