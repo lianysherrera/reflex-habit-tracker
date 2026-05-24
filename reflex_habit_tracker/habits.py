@@ -57,6 +57,7 @@ class HabitState(rx.State):
                 session.delete(habit)
                 session.commit()
         self.load_habits()
+        return rx.toast.error("Habito eliminado corectamente")
     
     def complete_habit(self, habit_id: int):
         with rx.session() as session:
@@ -65,7 +66,7 @@ class HabitState(rx.State):
                 log_date=date.today(),
             ))
             session.commit()
-        print(f"habito {habit_id} completado hoy")
+        return rx.toast.success("Habito completado hoy")
 
 
 def habit_card(habit: HabitItem):
@@ -132,6 +133,7 @@ def habit_form():
 def index():
     return rx.center(
         rx.vstack(
+            rx.toast.provider(),
             rx.heading("Tracker de Habitos", font_size="2.5em"),
             rx.text("Construye habitos, cambia tu vida", color="gray"),
             rx.divider(),
