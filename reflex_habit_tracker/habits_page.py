@@ -24,6 +24,17 @@ class HabitsPageState(rx.State):
 
     def complete_habit(self, habit_id: int):
         with rx.session() as session:
+
+            existing = session.exec(
+                select(HabitLog).where(
+                    HabitLog.habit_id == habit_id,
+                    HabitLog.log_date == date.today(),
+                )
+            ).first()
+
+            if existing:
+                return rx.toast.error("Ya completaste este habito hoy!")
+                
             session.add(HabitLog(
                 habit_id=habit_id,
                 log_date=date.today(),
