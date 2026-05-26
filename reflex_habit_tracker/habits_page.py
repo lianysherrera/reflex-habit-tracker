@@ -1,7 +1,7 @@
 import reflex as rx
 from pydantic import BaseModel
 from sqlmodel import select
-from datetime import date
+from datetime import date, timedelta
 from reflex_habit_tracker.models import Habit, HabitLog
 
 
@@ -9,10 +9,33 @@ class HabitItem(BaseModel):
     id: int = 0
     name: str = ""
     emoji: str = ""
+    streak: int = 0 #racha de días consecutivos
 
 
 class HabitsPageState(rx.State):
     habits: list[HabitItem] = []
+
+    def get_streak(self, habit_id: int, session) -> int:
+        logs = session.exec(
+            select(HabitLog)
+            .where(HabitLog.habit_id == habit_id)
+            .order_by(HabitLog.log_date.desc())
+        ).all()
+
+        if not logs:
+            return 0
+
+        streak = 0
+        check_date = date.today()
+
+        for log in logs:
+            if log.log_date == check_date:
+                streak += 1
+                check_date -= timedelta(days=1)
+            else:
+                break
+        
+        return streak
 
     def load_habits(self):
         with rx.session() as session:
