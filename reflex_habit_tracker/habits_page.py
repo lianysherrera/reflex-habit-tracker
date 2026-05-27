@@ -10,7 +10,7 @@ class HabitItem(BaseModel):
     name: str = ""
     emoji: str = ""
     streak: int = 0 #racha de días consecutivos
-
+    percentage: int = 0
 
 class HabitsPageState(rx.State):
     habits: list[HabitItem] = []
@@ -37,11 +37,31 @@ class HabitsPageState(rx.State):
         
         return streak
 
+    def get_percentage(self, habit_id: int, session) -> int:
+        today = date.today()
+        week_ago = today - timedelta(days=7)
+
+        logs = session.exec(
+            select(HabitLog).where(
+                HabitLog.habit_id == habit_id,
+                HabitLog.log_date >= week_ago,
+                HabitLog.log_date <= today,
+            )
+        ).all()
+        return int(len(logs) / 7 * 100)
+
+        
     def load_habits(self):
         with rx.session() as session:
             db_habits = session.exec(select(Habit)).all()
             self.habits = [
-                HabitItem(id=h.id or 0, name=h.name, emoji=h.emoji)
+                HabitItem(
+                    id=h.id or 0,
+                    name=h.name,
+                    emoji=h.emoji,
+                    streak=self.get_streak(h.id, session),
+                    percentage=self.get_percentage(h.id, session),
+                )
                 for h in db_habits
             ]
 
@@ -83,6 +103,22 @@ def habit_row(habit: HabitItem):
         rx.table.cell(habit.name),
         rx.table.cell(
             rx.hstack(
+                rx.text(habit.streak.to_string()),
+                rx.text("dias"),
+                spacing="1",
+            )
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.progress(value=habit.percentage, width="80px"),
+                rx.text(habit.percentage.to_string()),
+                rx.text("%"),
+                spacing="1",
+                align="center",
+            )
+        ),
+        rx.table.cell(
+            rx.hstack(
                 rx.button(
                     "Completado",
                     on_click=HabitsPageState.complete_habit(habit.id),
@@ -97,9 +133,10 @@ def habit_row(habit: HabitItem):
                     size="1",
                 ),
                 spacing="2",
-            ),
+            )
         ),
     )
+
 
 
 def habits_page():
@@ -107,11 +144,17 @@ def habits_page():
         rx.vstack(
             rx.toast.provider(),
             rx.heading("Mis Habitos", font_size="2em"),
+            rx.link(
+                rx.button(" <- Volver", variant="ghost"),
+                href="/",
+            ),
             rx.table.root(
                 rx.table.header(
                     rx.table.row(
                         rx.table.column_header_cell(""),
                         rx.table.column_header_cell("Habito"),
+                        rx.table.column_header_cell("Racha"),
+                        rx.table.column_header_cell("Esta semana"),
                         rx.table.column_header_cell("Acciones"),
                     ),
                 ),
