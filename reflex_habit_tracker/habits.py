@@ -2,6 +2,7 @@ import reflex as rx
 from pydantic import BaseModel
 from sqlmodel import select
 from reflex_habit_tracker.models import Habit
+from reflex_habit_tracker.navbar import navbar
 
 
 class HabitItem(BaseModel):
@@ -68,20 +69,19 @@ def habit_form():
 
 
 def index():
-    return rx.center(
-        rx.vstack(
-            rx.toast.provider(),
-            rx.heading("Tracker de Habitos", font_size="2.5em"),
-            rx.text("Construye habitos, cambia tu vida", color="gray"),
-            rx.divider(),
-            habit_form(),
-            rx.link(
-                rx.button("Ver mis habitos", color_scheme="blue"),
-                href="/habits",
+    return rx.box(
+        navbar(),
+        rx.center(
+            rx.vstack(
+                rx.toast.provider(),
+                rx.heading("Tracker de Habitos", font_size="2.5em"),
+                rx.text("Construye habitos, cambia tu vida", color="gray"),
+                rx.divider(),
+                habit_form(),
+                align="center",
+                spacing="6",
+                padding="2em",
             ),
-            align="center",
-            spacing="6",
-            padding="2em",
+            min_height="100vh",
         ),
-        min_height="100vh",
     )

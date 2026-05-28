@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlmodel import select
 from datetime import date, timedelta
 from reflex_habit_tracker.models import Habit, HabitLog
+from reflex_habit_tracker.navbar import navbar
 
 
 class HabitItem(BaseModel):
@@ -140,36 +141,35 @@ def habit_row(habit: HabitItem):
 
 
 def habits_page():
-    return rx.center(
-        rx.vstack(
-            rx.toast.provider(),
-            rx.heading("Mis Habitos", font_size="2em"),
-            rx.link(
-                rx.button(" <- Volver", variant="ghost"),
-                href="/",
-            ),
-            rx.table.root(
-                rx.table.header(
-                    rx.table.row(
-                        rx.table.column_header_cell(""),
-                        rx.table.column_header_cell("Habito"),
-                        rx.table.column_header_cell("Racha"),
-                        rx.table.column_header_cell("Esta semana"),
-                        rx.table.column_header_cell("Acciones"),
+    return rx.box(
+        navbar(),
+        rx.center(
+            rx.vstack(
+                rx.toast.provider(),
+                rx.heading("Mis Habitos", font_size="2em"),
+                rx.table.root(
+                    rx.table.header(
+                        rx.table.row(
+                            rx.table.column_header_cell(""),
+                            rx.table.column_header_cell("Habito"),
+                            rx.table.column_header_cell("Racha"),
+                            rx.table.column_header_cell("Esta semana"),
+                            rx.table.column_header_cell("Acciones"),
+                        ),
                     ),
-                ),
-                rx.table.body(
-                    rx.foreach(
-                        HabitsPageState.habits,
-                        habit_row,
+                    rx.table.body(
+                        rx.foreach(
+                            HabitsPageState.habits,
+                            habit_row,
+                        ),
                     ),
+                    width="700px",
                 ),
-                width="600px",
+                align="center",
+                spacing="5",
+                padding="2em",
+                on_mount=HabitsPageState.load_habits,
             ),
-            align="center",
-            spacing="5",
-            padding="2em",
-            on_mount=HabitsPageState.load_habits,
+            min_height="100vh",
         ),
-        min_height="100vh",
     )
