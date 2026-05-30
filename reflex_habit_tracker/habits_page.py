@@ -12,6 +12,7 @@ class HabitItem(BaseModel):
     emoji: str = ""
     streak: int = 0 #racha de días consecutivos
     percentage: int = 0
+    completed_today: bool = False
 
 class HabitsPageState(rx.State):
     habits: list[HabitItem] = []
@@ -55,6 +56,13 @@ class HabitsPageState(rx.State):
     def load_habits(self):
         with rx.session() as session:
             db_habits = session.exec(select(Habit)).all()
+            today = date.today()
+            
+            completed_logs = session.exec(
+                select(HabitLog).where(HabitLog.log_date == today)
+            ).all()
+            completed_ids = [log.habit_id for log in completed_logs]
+
             self.habits = [
                 HabitItem(
                     id=h.id or 0,
@@ -62,6 +70,7 @@ class HabitsPageState(rx.State):
                     emoji=h.emoji,
                     streak=self.get_streak(h.id, session),
                     percentage=self.get_percentage(h.id, session),
+                    completed_today=(h.id in completed_ids),
                 )
                 for h in db_habits
             ]
@@ -100,44 +109,74 @@ class HabitsPageState(rx.State):
 
 def habit_row(habit: HabitItem):
     return rx.table.row(
-        rx.table.cell(habit.emoji),
-        rx.table.cell(habit.name),
         rx.table.cell(
             rx.hstack(
-                rx.text(habit.streak.to_string()),
-                rx.text("dias"),
-                spacing="1",
+                rx.text(habit.emoji, font_size="1.2em"),
+                rx.text(
+                    habit.name,
+                    color=rx.cond(habit.completed_today, "var(--gray-9)", "inherit"),
+                    text_decoration=rx.cond(habit.completed_today, "line-through", "none"),
+                ),
+                spacing="2",
+                align="center",
             )
         ),
         rx.table.cell(
             rx.hstack(
-                rx.progress(value=habit.percentage, width="80px"),
-                rx.text(habit.percentage.to_string()),
-                rx.text("%"),
+                rx.text(
+                    habit.streak.to_string(),
+                    font_weight="500",
+                    color="var(--gray-12)",
+                ),
+                rx.text("días", color="var(--gray-9)", font_size="0.85em"),
                 spacing="1",
                 align="center",
             )
         ),
         rx.table.cell(
             rx.hstack(
-                rx.button(
-                    "Completado",
-                    on_click=HabitsPageState.complete_habit(habit.id),
-                    color_scheme="green",
-                    size="1",
+                rx.progress(
+                    value=habit.percentage,
+                    width="72px",
+                    height="4px",
+                    color_scheme="blue",
                 ),
-                rx.button(
-                    "Eliminar",
-                    on_click=HabitsPageState.delete_habit(habit.id),
-                    color_scheme="red",
-                    variant="ghost",
-                    size="1",
+                rx.text(
+                    habit.percentage.to_string() + "%",
+                    color="var(--gray-9)",
+                    font_size="0.8em",
+                    width="36px",
                 ),
                 spacing="2",
+                align="center",
             )
         ),
+        rx.table.cell(
+            rx.cond(
+                habit.completed_today,
+                rx.icon("circle-check", color="var(--green-9)", size=18),
+                rx.hstack(
+                    rx.icon_button(
+                        rx.icon("check", size=14),
+                        on_click=HabitsPageState.complete_habit(habit.id),
+                        color_scheme="gray",
+                        variant="ghost",
+                        size="1",
+                        cursor="pointer",
+                    ),
+                    rx.icon_button(
+                        rx.icon("trash-2", size=14),
+                        on_click=HabitsPageState.delete_habit(habit.id),
+                        color_scheme="gray",
+                        variant="ghost",
+                        size="1",
+                        cursor="pointer",
+                    ),
+                    spacing="4",
+                ),
+            ),
+        ),
     )
-
 
 
 def habits_page():
@@ -146,15 +185,40 @@ def habits_page():
         rx.center(
             rx.vstack(
                 rx.toast.provider(),
-                rx.heading("Mis Habitos", font_size="2em"),
+                rx.heading(
+                    "Mis Habitos",
+                    font_size="1.6em",
+                    font_weight="500",
+                    color="var(--gray-12)",
+                ),
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
+                            rx.table.column_header_cell(
+                                "Habito",
+                                color="white",
+                                font_size="1em",
+                                font_weight="600",
+                                text_transform="uppercase",
+                                letter_spacing="0.05em",
+                            ),
+                            rx.table.column_header_cell(
+                                "Racha",
+                                color="white",
+                                font_size="1em",
+                                font_weight="600",
+                                text_transform="uppercase",
+                                letter_spacing="0.05em",
+                            ),
+                            rx.table.column_header_cell(
+                                "Esta semana",
+                                color="white",
+                                font_size="1em",
+                                font_weight="600",
+                                text_transform="uppercase",
+                                letter_spacing="0.05em",
+                            ),
                             rx.table.column_header_cell(""),
-                            rx.table.column_header_cell("Habito"),
-                            rx.table.column_header_cell("Racha"),
-                            rx.table.column_header_cell("Esta semana"),
-                            rx.table.column_header_cell("Acciones"),
                         ),
                     ),
                     rx.table.body(
@@ -163,7 +227,7 @@ def habits_page():
                             habit_row,
                         ),
                     ),
-                    width="700px",
+                    width="600px",
                 ),
                 align="center",
                 spacing="5",
