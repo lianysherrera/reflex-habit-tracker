@@ -1,0 +1,15 @@
+# COLORES PRINCIPALES
+PRIMARY = "#1a1a2e"
+ACCENT = "#a78bfa"
+SUCCESS = "#38a169"
+ERROR = "#e53e3e"
+
+# TIPOGRAFIA
+FONT_SM = "0.85em"
+
+# ESPACIADO
+RADIUS = "10px"
+RADIUS_LG = "16px"
+
+# SOMBRAS
+SHADOW = "0 2px 8px rgba(0,0,0,0.3)"

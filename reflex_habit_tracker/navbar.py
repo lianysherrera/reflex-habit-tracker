@@ -1,4 +1,5 @@
 import reflex as rx
+from reflex_habit_tracker.styles import PRIMARY, ACCENT
 
 def navbar():
     return rx.box(
@@ -26,7 +27,7 @@ def navbar():
                 rx.link(
                     "Estadisticas",
                     href="/stats",
-                    color="white",
+                    color=ACCENT,
                     text_decoration="none",
                     _hover={"color": "#a78bfa"},
                 ),
