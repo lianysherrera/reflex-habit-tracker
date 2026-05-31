@@ -38,50 +38,89 @@ class HabitState(rx.State):
 
 
 def habit_form():
-    return rx.box(
-        rx.vstack(
-            rx.heading("Nuevo habito", font_size="1.5em"),
+    return rx.vstack(
+        rx.text(
+            "Nuevo habito",
+            font_size="0.78em",
+            font_weight="600",
+            letter_spacing="0.08em",
+            text_transform="uppercase",
+            color="var(--gray-9)",
+        ),
+        rx.hstack(
             rx.input(
-                placeholder="Nombre del habito...",
-                on_change=HabitState.set_name,
-                value=HabitState.name,
-                width="300px",
-            ),
-            rx.input(
-                placeholder="Emoji...",
+                placeholder="✦",
                 on_change=HabitState.set_emoji,
                 value=HabitState.emoji,
-                width="300px",
+                width="56px",
+                text_align="center",
+                font_size="1.1em",
+                border="1.5px solid var(--gray-5)",
+                border_radius="10px",
+                background="transparent",
+                flex_shrink="0",
             ),
-            rx.button(
-                "Añadir habito",
-                on_click=HabitState.add_habit,
-                color_scheme="green",
-                width="300px",
+            rx.input(
+                placeholder="¿Qué habito quieres crear?",
+                on_change=HabitState.set_name,
+                value=HabitState.name,
+                flex="1",
+                border="1.5px solid var(--gray-5)",
+                border_radius="10px",
+                background="transparent",
+                font_size="0.95em",
             ),
-            align="center",
-            spacing="3",
+            spacing="2",
+            width="100%",
         ),
-        border="1px solid #e2e8f0",
-        border_radius="8px",
-        padding="2em",
+        rx.button(
+            "Añadir habito",
+            on_click=HabitState.add_habit,
+            width="100%",
+            border_radius="10px",
+            font_weight="500",
+            font_size="0.95em",
+            height="42px",
+            background="var(--gray-12)",
+            color="var(--gray-1)",
+            cursor="pointer",
+        ),
+        spacing="3",
+        width="100%",
     )
+
 
 
 def index():
     return rx.box(
         navbar(),
+        rx.toast.provider(),
         rx.center(
             rx.vstack(
-                rx.toast.provider(),
-                rx.heading("Tracker de Habitos", font_size="2.5em"),
-                rx.text("Construye habitos, cambia tu vida", color="gray"),
-                rx.divider(),
+                rx.vstack(
+                    rx.heading(
+                        "Tracker de Habitos",
+                        font_size="2.2em",
+                        font_weight="700",
+                        letter_spacing="-0.03em",
+                        color="var(--gray-12)",
+                    ),
+                    rx.text(
+                        "Construye habitos, cambia tu vida",
+                        font_size="0.95em",
+                        color="var(--gray-9)",
+                    ),
+                    align="center",
+                    spacing="1",
+                ),
+                rx.box(height="0.5em"),
                 habit_form(),
-                align="center",
-                spacing="6",
-                padding="2em",
+                align="stretch",
+                spacing="3",
+                width="380px",
+                padding="3em 0",
             ),
             min_height="100vh",
+            background="var(--gray-1)",
         ),
     )
